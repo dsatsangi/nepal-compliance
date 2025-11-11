@@ -8,6 +8,10 @@
   "settings_section",
   "prevent_out_of_sequence_doctype_submission",
   "max_backdate_days_allowed",
+  "document_control_section",
+  "restrict_sales_invoice_cancellation",
+  "restrict_purchase_invoice_deletion",
+  "restrict_payment_entry_deletion",
   "column_break_qnkm",
   "bs_year",
   "bs_month",
@@ -35,6 +39,32 @@
    "fieldname": "max_backdate_days_allowed",
    "fieldtype": "Int",
    "label": "Max Backdate Days Allowed"
+  },
+  {
+   "fieldname": "document_control_section",
+   "fieldtype": "Section Break",
+   "label": "Document Controls"
+  },
+  {
+   "default": "1",
+   "description": "Prevents cancellation of submitted Sales Invoice documents.",
+   "fieldname": "restrict_sales_invoice_cancellation",
+   "fieldtype": "Check",
+   "label": "Prevent Sales Invoice Cancellation"
+  },
+  {
+   "default": "1",
+   "description": "Blocks deletion of submitted Purchase Invoice documents.",
+   "fieldname": "restrict_purchase_invoice_deletion",
+   "fieldtype": "Check",
+   "label": "Prevent Purchase Invoice Deletion"
+  },
+  {
+   "default": "1",
+   "description": "Blocks deletion of submitted Payment Entry documents.",
+   "fieldname": "restrict_payment_entry_deletion",
+   "fieldtype": "Check",
+   "label": "Prevent Payment Entry Deletion"
   },
   {
    "depends_on": "eval: doc.prevent_out_of_sequence_doctype_submission === 1",

@@ -1,5 +1,37 @@
 frappe.provide('frappe.listview_settings');
- 
+
+const whenDatePreferenceReady = (callback) => {
+    if (typeof window.__nc_on_date_pref_ready === "function") {
+        window.__nc_on_date_pref_ready(callback);
+    } else if (typeof window.use_ad_date !== "undefined") {
+        callback(window.use_ad_date);
+    } else {
+        window.__nc_date_pref_callbacks = window.__nc_date_pref_callbacks || [];
+        window.__nc_date_pref_callbacks.push(callback);
+    }
+};
+
+function adjust_for_ad_preference(value, df) {
+    if (!value || !df) return value;
+    if (!window.__nc_should_use_ad_dates?.()) return value;
+
+    const fieldname = df.fieldname || "";
+    const isNepaliField = fieldname.includes("nepali");
+    if (!isNepaliField && df.fieldtype !== "Data" && df.fieldtype !== "Date") {
+        return value;
+    }
+
+    if (!window.__nc_is_bs_date?.(value)) {
+        return value;
+    }
+
+    const ad_date = window.__nc_convert_bs_to_ad?.(value);
+    if (ad_date && ad_date !== value) {
+        return frappe.datetime.str_to_user(ad_date);
+    }
+    return value;
+}
+
 const DatePickerConfig = {
     CALENDAR_FIELDS: ['nepali_date', 'from_nepali_date', 'to_nepali_date', 'nepali_start_date', 'nepali_end_date', 'nepali_year_start_date', 'nepali_year_end_date',
         'from_nepali_date_leave_allocation', 'to_nepali_date_leave_allocation', 'from_nepali_date_leave_application', 'to_nepali_date_leave_application', 'nepali_from_date', 'nepali_to_date',
@@ -12,10 +44,19 @@ const DatePickerConfig = {
     NEPALI_TO_DATE_FIELD: 'to_nepali_date',
  
     initializePickers: function(listview) {
-        this.listview = listview;
-        this.initializeAllDatePickers();
-        this.setupEventListeners(listview);
-        this.setupDateConversions(listview);
+        const initialize = () => {
+            this.listview = listview;
+            this.initializeAllDatePickers();
+            this.setupEventListeners(listview);
+            this.setupDateConversions(listview);
+        };
+
+        if (typeof window.use_ad_date !== "undefined") {
+            initialize();
+            return;
+        }
+
+        whenDatePreferenceReady(() => initialize());
     },
  
     initializeAllDatePickers: function() {
@@ -304,18 +345,32 @@ const DatePickerConfig = {
 };
  
 function initializeDatePickersForListView(doctype) {
+    const existing = frappe.listview_settings[doctype] || {};
+    const original_onload = existing.onload;
+    const original_formatter = existing.formatter;
+
     frappe.listview_settings[doctype] = {
-        onload: function(listview) {
+        ...existing,
+        onload(listview) {
+            original_onload?.call(this, listview);
             DatePickerConfig.initializePickers(listview);
+        },
+        formatter(value, df, data, listview) {
+            let formatted;
+            if (typeof original_formatter === "function") {
+                formatted = original_formatter.call(this, value, df, data, listview);
+            } else if (typeof frappe.format === "function") {
+                formatted = frappe.format(value, df, null, data);
+            } else {
+                formatted = value;
+            }
+            return adjust_for_ad_preference(formatted, df);
         }
     };
 
     $(document).ready(function() {
         setTimeout(() => {
             if (cur_list && cur_list.doctype === doctype) {
-                if (cur_list.filter_area) {
-                    cur_list.filter_area.clear();
-                }
                 DatePickerConfig.initializePickers(cur_list);
             }
         }, 1000);

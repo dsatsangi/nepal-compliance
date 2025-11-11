@@ -1,11 +1,22 @@
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import cint, flt
 from frappe.utils.safe_exec import safe_eval
 from frappe.model.naming import make_autoname
 
+def is_restriction_enabled(fieldname: str, default: int = 1) -> bool:
+    """Read a boolean flag from Nepal Compliance Settings with a safe fallback."""
+    try:
+        value = frappe.db.get_single_value("Nepal Compliance Settings", fieldname)
+        if value is None:
+            return bool(default)
+        return bool(cint(value))
+    except Exception:
+        # Settings might not exist during install or in tests; respect default.
+        return bool(default)
+
 def prevent_invoice_deletion(doc, method):
-    if (doc.docstatus == 1):
+    if doc.docstatus == 1 and is_restriction_enabled("restrict_purchase_invoice_deletion"):
         frappe.throw(_(f"Deletion of {doc.name} is not allowed due to compliance rule."))
 
 def custom_autoname(doc, method):

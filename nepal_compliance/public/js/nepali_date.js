@@ -1,6 +1,82 @@
+window.__nc_date_pref_callbacks = window.__nc_date_pref_callbacks || [];
+window.__nc_pref_ready = window.__nc_pref_ready || false;
+
+function should_use_ad_dates() {
+    if (typeof window.use_ad_date !== "undefined") {
+        return !!window.use_ad_date;
+    }
+    const boot_pref = frappe?.boot?.user?.use_ad_date;
+    if (typeof boot_pref !== "undefined" && boot_pref !== null) {
+        return !!boot_pref;
+    }
+    return false;
+}
+
+function is_bs_date(value) {
+    if (typeof value !== "string") {
+        return false;
+    }
+    const normalized = value.trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+        return false;
+    }
+    const year = parseInt(normalized.substring(0, 4), 10);
+    return year >= 2050 && year <= 2200;
+}
+
+function convert_bs_to_ad(value) {
+    if (!value || !is_bs_date(value)) {
+        return value;
+    }
+    try {
+        return NepaliFunctions.BS2AD(value, "YYYY-MM-DD", "YYYY-MM-DD");
+    } catch (err) {
+        console.warn("BS→AD conversion failed", value, err);
+        return value;
+    }
+}
+
+window.__nc_should_use_ad_dates = should_use_ad_dates;
+window.__nc_is_bs_date = is_bs_date;
+window.__nc_convert_bs_to_ad = convert_bs_to_ad;
+
+function resolve_date_preference(use_ad_date) {
+    const normalized = !!use_ad_date;
+    const previous = window.use_ad_date;
+    window.use_ad_date = normalized;
+
+    if (window.__nc_pref_ready && previous === normalized) {
+        return;
+    }
+
+    window.__nc_pref_ready = true;
+    const callbacks = window.__nc_date_pref_callbacks;
+    while (callbacks.length) {
+        const cb = callbacks.shift();
+        try {
+            cb(normalized);
+        } catch (err) {
+            console.error("Date preference callback failed", err);
+        }
+    }
+}
+
+window.__nc_on_date_pref_ready = function(callback) {
+    if (window.__nc_pref_ready && typeof window.use_ad_date !== "undefined") {
+        callback(window.use_ad_date);
+    } else {
+        window.__nc_date_pref_callbacks.push(callback);
+    }
+};
+
+const boot_preference = frappe?.boot?.user?.use_ad_date;
+if (typeof boot_preference !== "undefined" && boot_preference !== null) {
+    resolve_date_preference(boot_preference);
+}
+
 frappe.after_ajax(() => {
     fetch_user_date_preference().then(use_ad_date => {
-        window.use_ad_date = use_ad_date;
+        resolve_date_preference(use_ad_date);
         override_with_nepali_date_picker(use_ad_date);
     });
 });
