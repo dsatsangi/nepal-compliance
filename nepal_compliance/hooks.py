@@ -100,7 +100,18 @@ doctype_js = {
 doctype_list_js = {
     "Salary Component": "public/js/custom_button.js",
     "Leave Allocation": "public/js/utils.js",
-    "Sales Invoice" : "public/js/bulk_update_nepali_date.js"
+    "Sales Invoice" : ["public/js/bulk_update_nepali_date.js", "public/js/session_defaults.js"],
+    "Journal Entry": "public/js/session_defaults.js",
+    "Payment Entry": "public/js/session_defaults.js",
+    "Purchase Invoice": "public/js/session_defaults.js",
+    "Purchase Receipt": "public/js/session_defaults.js",
+    "Stock Entry": "public/js/session_defaults.js",
+    "Delivery Note": "public/js/session_defaults.js",
+    "Sales Order": "public/js/session_defaults.js",
+    "Purchase Order": "public/js/session_defaults.js",
+    "Material Request": "public/js/session_defaults.js",
+    "Stock Reconciliation": "public/js/session_defaults.js",
+    "Asset": "public/js/session_defaults.js"
 }
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}

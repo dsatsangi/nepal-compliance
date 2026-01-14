@@ -1,134 +1,142 @@
 {
- "actions": [],
- "allow_rename": 1,
- "creation": "2025-04-21 12:19:04.058100",
- "doctype": "DocType",
- "engine": "InnoDB",
- "field_order": [
-  "settings_section",
-  "prevent_out_of_sequence_doctype_submission",
-  "max_backdate_days_allowed",
-  "document_control_section",
-  "restrict_sales_invoice_cancellation",
-  "restrict_purchase_invoice_deletion",
-  "restrict_payment_entry_deletion",
-  "column_break_qnkm",
-  "bs_year",
-  "bs_month",
-  "section_break_gjyo",
-  "allowed_role",
-  "column_break_ftxd",
-  "restricted_doctypes"
- ],
- "fields": [
-  {
-   "fieldname": "settings_section",
-   "fieldtype": "Section Break",
-   "label": "Settings"
-  },
-  {
-   "default": "0",
-   "description": "Backdated submissions are restricted to maintain document sequence integrity.",
-   "fieldname": "prevent_out_of_sequence_doctype_submission",
-   "fieldtype": "Check",
-   "label": "Prevent Out of Sequence Doctype Submission"
-  },
-  {
-   "depends_on": "eval: doc.prevent_out_of_sequence_doctype_submission === 1",
-   "description": "Don't forget to list the Doctypes you want to restrict in the Restricted Doctypes table or Role you want to allow in the Allowed Role table below.",
-   "fieldname": "max_backdate_days_allowed",
-   "fieldtype": "Int",
-   "label": "Max Backdate Days Allowed"
-  },
-  {
-   "fieldname": "document_control_section",
-   "fieldtype": "Section Break",
-   "label": "Document Controls"
-  },
-  {
-   "default": "1",
-   "description": "Prevents cancellation of submitted Sales Invoice documents.",
-   "fieldname": "restrict_sales_invoice_cancellation",
-   "fieldtype": "Check",
-   "label": "Prevent Sales Invoice Cancellation"
-  },
-  {
-   "default": "1",
-   "description": "Blocks deletion of submitted Purchase Invoice documents.",
-   "fieldname": "restrict_purchase_invoice_deletion",
-   "fieldtype": "Check",
-   "label": "Prevent Purchase Invoice Deletion"
-  },
-  {
-   "default": "1",
-   "description": "Blocks deletion of submitted Payment Entry documents.",
-   "fieldname": "restrict_payment_entry_deletion",
-   "fieldtype": "Check",
-   "label": "Prevent Payment Entry Deletion"
-  },
-  {
-   "depends_on": "eval: doc.prevent_out_of_sequence_doctype_submission === 1",
-   "fieldname": "section_break_gjyo",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "allowed_role",
-   "fieldtype": "Table",
-   "label": "Allowed Roles",
-   "options": "Nepal Compliance Role"
-  },
-  {
-   "fieldname": "column_break_ftxd",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "restricted_doctypes",
-   "fieldtype": "Table",
-   "label": "Restricted DocTypes",
-   "options": "Nepal Compliance Doctype"
-  },
-  {
-   "fieldname": "column_break_qnkm",
-   "fieldtype": "Column Break"
-  },
-  {
-   "description": "This will be updated as per Leave Allocated by HR",
-   "fieldname": "bs_year",
-   "fieldtype": "Int",
-   "label": "BS Year",
-   "read_only": 1
-  },
-  {
-   "description": "This will be updated as per Leave Allocated by HR",
-   "fieldname": "bs_month",
-   "fieldtype": "Int",
-   "label": "BS Month",
-   "read_only": 1
-  }
- ],
- "index_web_pages_for_search": 1,
- "issingle": 1,
- "links": [],
- "modified": "2025-07-15 13:26:29.728650",
- "modified_by": "Administrator",
- "module": "Nepal Compliance",
- "name": "Nepal Compliance Settings",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "print": 1,
-   "read": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  }
- ],
- "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": [],
- "track_changes": 1
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2025-04-21 12:19:04.058100",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "settings_section",
+        "enforce_session_defaults",
+        "prevent_out_of_sequence_doctype_submission",
+        "max_backdate_days_allowed",
+        "document_control_section",
+        "restrict_sales_invoice_cancellation",
+        "restrict_purchase_invoice_deletion",
+        "restrict_payment_entry_deletion",
+        "column_break_qnkm",
+        "bs_year",
+        "bs_month",
+        "section_break_gjyo",
+        "allowed_role",
+        "column_break_ftxd",
+        "restricted_doctypes"
+    ],
+    "fields": [
+        {
+            "fieldname": "settings_section",
+            "fieldtype": "Section Break",
+            "label": "Settings"
+        },
+        {
+            "default": "0",
+            "description": "If enabled, list views for financial documents will be filtered by the user's session default Company.",
+            "fieldname": "enforce_session_defaults",
+            "fieldtype": "Check",
+            "label": "Enforce Session Defaults in List View"
+        },
+        {
+            "default": "0",
+            "description": "Backdated submissions are restricted to maintain document sequence integrity.",
+            "fieldname": "prevent_out_of_sequence_doctype_submission",
+            "fieldtype": "Check",
+            "label": "Prevent Out of Sequence Doctype Submission"
+        },
+        {
+            "depends_on": "eval: doc.prevent_out_of_sequence_doctype_submission === 1",
+            "description": "Don't forget to list the Doctypes you want to restrict in the Restricted Doctypes table or Role you want to allow in the Allowed Role table below.",
+            "fieldname": "max_backdate_days_allowed",
+            "fieldtype": "Int",
+            "label": "Max Backdate Days Allowed"
+        },
+        {
+            "fieldname": "document_control_section",
+            "fieldtype": "Section Break",
+            "label": "Document Controls"
+        },
+        {
+            "default": "1",
+            "description": "Prevents cancellation of submitted Sales Invoice documents.",
+            "fieldname": "restrict_sales_invoice_cancellation",
+            "fieldtype": "Check",
+            "label": "Prevent Sales Invoice Cancellation"
+        },
+        {
+            "default": "1",
+            "description": "Blocks deletion of submitted Purchase Invoice documents.",
+            "fieldname": "restrict_purchase_invoice_deletion",
+            "fieldtype": "Check",
+            "label": "Prevent Purchase Invoice Deletion"
+        },
+        {
+            "default": "1",
+            "description": "Blocks deletion of submitted Payment Entry documents.",
+            "fieldname": "restrict_payment_entry_deletion",
+            "fieldtype": "Check",
+            "label": "Prevent Payment Entry Deletion"
+        },
+        {
+            "depends_on": "eval: doc.prevent_out_of_sequence_doctype_submission === 1",
+            "fieldname": "section_break_gjyo",
+            "fieldtype": "Section Break"
+        },
+        {
+            "fieldname": "allowed_role",
+            "fieldtype": "Table",
+            "label": "Allowed Roles",
+            "options": "Nepal Compliance Role"
+        },
+        {
+            "fieldname": "column_break_ftxd",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "restricted_doctypes",
+            "fieldtype": "Table",
+            "label": "Restricted DocTypes",
+            "options": "Nepal Compliance Doctype"
+        },
+        {
+            "fieldname": "column_break_qnkm",
+            "fieldtype": "Column Break"
+        },
+        {
+            "description": "This will be updated as per Leave Allocated by HR",
+            "fieldname": "bs_year",
+            "fieldtype": "Int",
+            "label": "BS Year",
+            "read_only": 1
+        },
+        {
+            "description": "This will be updated as per Leave Allocated by HR",
+            "fieldname": "bs_month",
+            "fieldtype": "Int",
+            "label": "BS Month",
+            "read_only": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "issingle": 1,
+    "links": [],
+    "modified": "2025-07-15 13:26:29.728650",
+    "modified_by": "Administrator",
+    "module": "Nepal Compliance",
+    "name": "Nepal Compliance Settings",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "row_format": "Dynamic",
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
 }
