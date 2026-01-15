@@ -188,9 +188,21 @@ before_uninstall = "nepal_compliance.uninstall.cleanup_salary_structures"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
+
+permission_query_conditions = {
+    "Journal Entry": "nepal_compliance.permissions.get_session_default_conditions",
+    "Payment Entry": "nepal_compliance.permissions.get_session_default_conditions",
+    "Purchase Invoice": "nepal_compliance.permissions.get_session_default_conditions",
+    "Purchase Receipt": "nepal_compliance.permissions.get_session_default_conditions",
+    "Stock Entry": "nepal_compliance.permissions.get_session_default_conditions",
+    "Sales Invoice": "nepal_compliance.permissions.get_session_default_conditions",
+    "Delivery Note": "nepal_compliance.permissions.get_session_default_conditions",
+    "Sales Order": "nepal_compliance.permissions.get_session_default_conditions",
+    "Purchase Order": "nepal_compliance.permissions.get_session_default_conditions",
+    "Material Request": "nepal_compliance.permissions.get_session_default_conditions",
+    "Stock Reconciliation": "nepal_compliance.permissions.get_session_default_conditions",
+    "Asset": "nepal_compliance.permissions.get_session_default_conditions",
+}
 #
 # has_permission = {
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",

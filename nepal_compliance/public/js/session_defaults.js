@@ -15,27 +15,37 @@ const session_default_doctypes = [
 ];
 
 const apply_session_filter = function (listview) {
-    frappe.db.get_single_value("Nepal Compliance Settings", "enforce_session_defaults")
-        .then(enabled => {
-            if (enabled) {
-                if (company) {
-                    // Start by removing any existing company filters to ensure session default takes precedence
-                    if (listview.filter_area.exists([listview.doctype, "company", "=", company])) {
-                        // if the correct filter already exists, do nothing to avoid refresh loop
-                        return;
-                    }
+    const settings = frappe.boot.nepal_compliance_settings;
+    if (settings && settings.enforce_session_defaults) {
+        const company = frappe.defaults.get_user_default("company");
 
-                    // Remove any other company filters (e.g. from previous session or wrong default)
-                    listview.filter_area.remove("company");
+        if (company) {
+            // Get all current filters
+            let filters = listview.filter_area.get();
+            // Check if the correct filter is already the ONLY company filter
+            const company_filters = filters.filter(f => f[1] === "company");
+            const correct_filter_exists = company_filters.find(f => f[3] === company);
 
-                    // Apply the correct session default
-                    listview.filter_area.add([[listview.doctype, "company", "=", company]]);
-                }
+            if (company_filters.length === 1 && correct_filter_exists) {
+                return;
             }
-        })
-        .catch(err => {
-            console.error("Nepal Compliance: Error fetching settings", err);
-        });
+
+            // Resetting filters to enforce company
+            // Remove ALL company filters from the list
+            filters = filters.filter(f => f[1] !== "company");
+
+            // Add the correct company filter
+            filters.push([listview.doctype, "company", "=", company]);
+
+            // Clear and Set
+            // We use clear(false) to avoid double refresh, then set() calls refresh
+            if (listview.filter_area) {
+                listview.filter_area.clear(false).then(() => {
+                    listview.filter_area.set(filters);
+                });
+            }
+        }
+    }
 };
 
 session_default_doctypes.forEach(doctype => {
