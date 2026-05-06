@@ -1,15 +1,39 @@
+from functools import wraps
+from inspect import signature
+
 import frappe.utils
-
-# Keep original reference
-_original_sanitize_html = frappe.utils.sanitize_html
+import frappe.utils.html_utils
 
 
-def patched_sanitize_html(*args, **kwargs):
-    # Remove unsupported kwarg safely
-    kwargs.pop("disallowed_tags", None)
+def _supports_disallowed_tags(function):
+    try:
+        parameters = signature(function).parameters
+    except (TypeError, ValueError):
+        return False
 
-    return _original_sanitize_html(*args, **kwargs)
+    return "disallowed_tags" in parameters
 
 
-# Apply monkey patch
-frappe.utils.sanitize_html = patched_sanitize_html
+def _patch_function(function):
+    if getattr(function, "_nepal_compliance_sanitize_html_patch", False):
+        return function
+
+    supports_disallowed_tags = _supports_disallowed_tags(function)
+
+    @wraps(function)
+    def patched_sanitize_html(*args, **kwargs):
+        if not supports_disallowed_tags:
+            kwargs.pop("disallowed_tags", None)
+
+        return function(*args, **kwargs)
+
+    patched_sanitize_html._nepal_compliance_sanitize_html_patch = True
+    return patched_sanitize_html
+
+
+def apply():
+    frappe.utils.sanitize_html = _patch_function(frappe.utils.sanitize_html)
+    frappe.utils.html_utils.sanitize_html = _patch_function(frappe.utils.html_utils.sanitize_html)
+
+
+apply()
