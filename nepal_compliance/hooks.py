@@ -38,7 +38,8 @@ app_include_js = [
                  "/assets/nepal_compliance/js/report_filter.js",
                  "/assets/nepal_compliance/js/icon_patch.js",
                  "/assets/nepal_compliance/js/calendar_theme.js",
-                 "/assets/nepal_compliance/js/employee_benefit_claim.js"
+                 "/assets/nepal_compliance/js/employee_benefit_claim.js",
+                 "/assets/nepal_compliance/js/session_company_indicator.js"
                  ]
 
 boot_session = "nepal_compliance.boot.get_boot_info"

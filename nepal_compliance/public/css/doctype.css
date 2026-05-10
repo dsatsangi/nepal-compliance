@@ -93,3 +93,143 @@ input.nepali-datepicker-active {
         padding: 8px; /* Larger touch targets for mobile */
     }
 }
+
+.nepal-session-company-wrapper {
+    display: inline-flex;
+    flex: 0 1 auto;
+    margin-right: 8px;
+    position: relative;
+}
+
+.nepal-session-company-wrapper[data-placement="sidebar"] {
+    display: none;
+    margin: -4px 0 2px 0;
+    width: 100%;
+}
+
+.body-sidebar-container.expanded .nepal-session-company-wrapper[data-placement="sidebar"] {
+    display: flex;
+}
+
+.nepal-session-company-indicator {
+    align-items: center;
+    background: var(--control-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    color: var(--text-color);
+    display: inline-flex;
+    flex: 0 1 auto;
+    font-size: var(--text-sm);
+    gap: 6px;
+    height: 32px;
+    max-width: 260px;
+    padding: 0 10px;
+    white-space: nowrap;
+}
+
+.nepal-session-company-wrapper[data-placement="sidebar"] .nepal-session-company-indicator {
+    height: 32px;
+    justify-content: flex-start;
+    max-width: none;
+    width: 100%;
+}
+
+.nepal-session-company-indicator:hover {
+    background: var(--fg-hover-color);
+}
+
+.nepal-session-company-indicator .indicator-label {
+    color: var(--text-muted);
+}
+
+.nepal-session-company-indicator .indicator-value {
+    font-weight: 600;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nepal-session-company-indicator .indicator-caret {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.nepal-session-company-menu {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    left: 0;
+    min-width: 280px;
+    padding: 12px;
+    position: absolute;
+    top: calc(100% + 6px);
+    z-index: 1050;
+}
+
+.nepal-session-company-wrapper[data-placement="sidebar"] .nepal-session-company-menu {
+    min-width: 280px;
+}
+
+.nepal-session-company-menu.hidden {
+    display: none;
+}
+
+.nepal-session-company-menu .frappe-control {
+    margin-bottom: 10px;
+}
+
+.nepal-session-company-menu .control-input {
+    position: relative;
+}
+
+.nepal-session-company-menu .link-btn {
+    display: none;
+}
+
+.nepal-session-company-menu .awesomplete > input {
+    padding-right: 36px;
+}
+
+.nepal-session-company-clear {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: var(--text-muted);
+    display: inline-flex;
+    font-size: 22px;
+    height: 28px;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    z-index: 2;
+}
+
+.nepal-session-company-clear:hover {
+    color: var(--text-color);
+}
+
+.nepal-session-company-menu .company-menu-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+@media (max-width: 767px) {
+    .nepal-session-company-indicator {
+        max-width: 160px;
+    }
+
+    .nepal-session-company-menu {
+        min-width: 240px;
+    }
+
+    .nepal-session-company-indicator .indicator-label {
+        display: none;
+    }
+}
