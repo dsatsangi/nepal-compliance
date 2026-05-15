@@ -1,7 +1,6 @@
 (function () {
     const WRAPPER_ID = "nepal-compliance-session-company-wrapper";
     const INDICATOR_ID = "nepal-compliance-session-company";
-    const MENU_ID = "nepal-compliance-session-company-menu";
     const company_abbr_cache = {};
 
     function get_session_company() {
@@ -62,14 +61,6 @@
         document.getElementById(WRAPPER_ID)?.remove();
     }
 
-    function close_menu() {
-        const menu = document.getElementById(MENU_ID);
-        const indicator = document.getElementById(INDICATOR_ID);
-
-        menu?.classList.add("hidden");
-        indicator?.setAttribute("aria-expanded", "false");
-    }
-
     function set_local_company_default(company) {
         if (frappe.boot?.user?.defaults) {
             frappe.boot.user.defaults.company = company;
@@ -108,94 +99,49 @@
         });
     }
 
-    function create_dropdown(wrapper) {
-        const menu = document.createElement("div");
-        menu.id = MENU_ID;
-        menu.className = "nepal-session-company-menu hidden";
-        menu.innerHTML = `
-            <div class="company-link-field"></div>
-            <div class="company-menu-actions">
-                <button class="btn btn-xs btn-primary apply-company" type="button">
-                    ${__("Apply")}
-                </button>
-            </div>
-        `;
-
-        wrapper.appendChild(menu);
-
-        const control = frappe.ui.form.make_control({
-            parent: menu.querySelector(".company-link-field"),
-            df: {
-                fieldtype: "Link",
-                fieldname: "session_company",
-                label: __("Change Company"),
-                options: "Company",
-                placeholder: __("Select Company")
-            },
-            render_input: true
-        });
-
-        control.set_value(get_session_company() || "");
-        wrapper.company_control = control;
-        add_clear_button(wrapper, control);
-
-        menu.querySelector(".apply-company").addEventListener("click", () => {
-            set_session_company(wrapper);
-        });
-    }
-
-    function add_clear_button(wrapper, control) {
-        const clear_button = document.createElement("button");
-        clear_button.type = "button";
-        clear_button.className = "nepal-session-company-clear";
-        clear_button.title = __("Clear Company");
-        clear_button.setAttribute("aria-label", __("Clear Company"));
-        clear_button.innerHTML = "&times;";
-
-        clear_button.addEventListener("click", event => {
-            event.preventDefault();
-            event.stopPropagation();
-            control.set_value("");
-            control.$input?.focus();
-        });
-
-        control.$wrapper.find(".control-input").append(clear_button);
-    }
-
-    function toggle_menu(wrapper) {
-        if (!wrapper.company_control) {
-            create_dropdown(wrapper);
+    function get_session_company_dialog(wrapper) {
+        if (wrapper.dialog) {
+            return wrapper.dialog;
         }
 
-        const menu = wrapper.querySelector(`#${MENU_ID}`);
-        const indicator = wrapper.querySelector(`#${INDICATOR_ID}`);
-        const is_hidden = menu.classList.contains("hidden");
-
-        document.querySelectorAll(".nepal-session-company-menu").forEach(item => {
-            if (item !== menu) {
-                item.classList.add("hidden");
+        const dialog = new frappe.ui.Dialog({
+            title: __("Session Defaults"),
+            fields: [
+                {
+                    fieldtype: "Link",
+                    fieldname: "session_company",
+                    label: __("Default Company"),
+                    options: "Company",
+                    placeholder: __("Select Company")
+                }
+            ],
+            primary_action_label: __("Apply"),
+            primary_action(values) {
+                set_session_company(wrapper, values.session_company);
             }
         });
 
-        menu.classList.toggle("hidden", !is_hidden);
-        indicator.setAttribute("aria-expanded", is_hidden ? "true" : "false");
-
-        if (is_hidden) {
-            wrapper.company_control.set_value(get_session_company() || "");
-            setTimeout(() => wrapper.company_control.$input?.focus(), 0);
-        }
+        wrapper.dialog = dialog;
+        return dialog;
     }
 
-    async function set_session_company(wrapper) {
-        const company = wrapper.company_control?.get_value();
+    function open_session_company_dialog(wrapper) {
+        const dialog = get_session_company_dialog(wrapper);
+        dialog.set_value("session_company", get_session_company() || "");
+        dialog.show();
+        setTimeout(() => dialog.fields_dict.session_company.set_focus(), 0);
+    }
 
+    async function set_session_company(wrapper, company) {
         if (!company) {
             frappe.msgprint(__("Please select a company."));
             return;
         }
 
-        const apply_button = wrapper.querySelector(".apply-company");
-        apply_button.disabled = true;
+        const dialog = wrapper.dialog;
+        if (dialog) {
+            dialog.disable_primary_action();
+        }
 
         try {
             const response = await frappe.call({
@@ -210,14 +156,21 @@
             }
 
             set_local_company_default(company);
-            close_menu();
-            render_session_company();
-            frappe.show_alert({
-                message: __("Default company changed to {0}", [company]),
-                indicator: "green"
-            });
+            if (dialog) {
+                dialog.hide();
+            }
+
+            if (frappe.ui.toolbar?.clear_cache) {
+                await frappe.ui.toolbar.clear_cache();
+            } else if (typeof frappe.clear_cache === "function") {
+                frappe.clear_cache();
+            }
+
+            window.location.reload();
         } finally {
-            apply_button.disabled = false;
+            if (dialog) {
+                dialog.enable_primary_action();
+            }
         }
     }
 
@@ -266,8 +219,7 @@
         indicator.addEventListener("click", event => {
             event.preventDefault();
             event.stopPropagation();
-            event.stopImmediatePropagation();
-            toggle_menu(wrapper);
+            open_session_company_dialog(wrapper);
         });
 
         wrapper.insertBefore(indicator, wrapper.firstChild);
@@ -303,12 +255,6 @@
     $(document).on("sidebar_setup page-change", () => {
         if (is_frappe_v16()) {
             setTimeout(render_session_company, 0);
-        }
-    });
-
-    document.addEventListener("click", event => {
-        if (!event.target.closest(`#${WRAPPER_ID}`)) {
-            close_menu();
         }
     });
 
