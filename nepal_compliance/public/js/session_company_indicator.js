@@ -1,6 +1,6 @@
 (function () {
-    const WRAPPER_ID = "nepal-compliance-session-company-wrapper";
-    const INDICATOR_ID = "nepal-compliance-session-company";
+    const WRAPPER_ID_PREFIX = "nepal-compliance-session-company-wrapper";
+    const INDICATOR_ID_PREFIX = "nepal-compliance-session-company";
     const company_abbr_cache = {};
 
     function get_session_company() {
@@ -28,24 +28,17 @@
         );
     }
 
-    function get_indicator_target() {
-        if (is_frappe_v16()) {
-            const sidebar = document.querySelector(".body-sidebar");
-            const standard_items = sidebar?.querySelector(".standard-items-sections");
-
-            if (!sidebar || !standard_items) {
-                return null;
-            }
-
+    function get_navbar_target() {
+        const navbar_right = document.querySelector(".navbar .navbar-right");
+        if (navbar_right) {
             return {
-                parent: sidebar,
-                before: standard_items,
-                placement: "sidebar"
+                parent: navbar_right,
+                before: navbar_right.firstElementChild,
+                placement: "navbar"
             };
         }
 
         const search_container = get_search_container();
-
         if (!search_container) {
             return null;
         }
@@ -57,8 +50,35 @@
         };
     }
 
+    function get_sidebar_target() {
+        const sidebar = document.querySelector(".body-sidebar");
+        const standard_items = sidebar?.querySelector(".standard-items-sections");
+
+        if (!sidebar || !standard_items) {
+            return null;
+        }
+
+        return {
+            parent: sidebar,
+            before: standard_items,
+            placement: "sidebar"
+        };
+    }
+
+    function get_indicator_targets() {
+        return [get_navbar_target(), get_sidebar_target()].filter(Boolean);
+    }
+
+    function get_wrapper_id(placement) {
+        return `${WRAPPER_ID_PREFIX}-${placement}`;
+    }
+
+    function get_indicator_id(placement) {
+        return `${INDICATOR_ID_PREFIX}-${placement}`;
+    }
+
     function remove_indicator() {
-        document.getElementById(WRAPPER_ID)?.remove();
+        document.querySelectorAll(".nepal-session-company-wrapper").forEach(wrapper => wrapper.remove());
     }
 
     function set_local_company_default(company) {
@@ -90,7 +110,7 @@
 
     function set_indicator_label(indicator, company) {
         const value = indicator.querySelector(".indicator-value");
-        value.textContent = company || __("Set Company");
+        value.textContent = company ? "..." : __("Set Company");
 
         get_company_indicator_label(company).then(label => {
             if (indicator.dataset.company === (company || "")) {
@@ -138,10 +158,17 @@
             return;
         }
 
+        if (company === get_session_company()) {
+            wrapper.dialog?.hide();
+            return;
+        }
+
         const dialog = wrapper.dialog;
         if (dialog) {
             dialog.disable_primary_action();
         }
+        wrapper.classList.add("is-saving");
+        wrapper.company_control?.$input?.prop("disabled", true);
 
         try {
             const response = await frappe.call({
@@ -171,37 +198,21 @@
             if (dialog) {
                 dialog.enable_primary_action();
             }
+            wrapper.classList.remove("is-saving");
+            wrapper.company_control?.$input?.prop("disabled", false);
         }
     }
 
-    function render_session_company() {
-        if (!frappe.boot?.nepal_compliance_settings?.enforce_session_defaults) {
-            remove_indicator();
-            return;
-        }
-
-        const company = get_session_company();
-        const target = get_indicator_target();
-
-        if (!target) {
-            remove_indicator();
-            return;
-        }
-
-        let wrapper = document.getElementById(WRAPPER_ID);
-        let indicator = document.getElementById(INDICATOR_ID);
-
-        if (!wrapper) {
-            wrapper = document.createElement("div");
-            wrapper.id = WRAPPER_ID;
-            wrapper.className = "nepal-session-company-wrapper";
-        }
-
-        wrapper.dataset.placement = target.placement;
+    function render_company_indicator_button(wrapper, company) {
+        const placement = wrapper.dataset.placement || "navbar";
+        let indicator = document.getElementById(get_indicator_id(placement));
 
         indicator?.remove();
+        wrapper.innerHTML = "";
+        wrapper.company_control = null;
+
         indicator = document.createElement("button");
-        indicator.id = INDICATOR_ID;
+        indicator.id = get_indicator_id(placement);
         indicator.type = "button";
         indicator.className = "nepal-session-company-indicator";
         indicator.setAttribute("aria-haspopup", "true");
@@ -211,7 +222,6 @@
             ? __("Active session default company: {0}", [company])
             : __("Active session default company");
         indicator.innerHTML = `
-            <span class="indicator-label">${__("Company")}</span>
             <span class="indicator-value"></span>
             <span class="indicator-caret" aria-hidden="true">&#9662;</span>
         `;
@@ -223,10 +233,45 @@
         });
 
         wrapper.insertBefore(indicator, wrapper.firstChild);
+    }
 
-        if (target.before.previousElementSibling !== wrapper) {
-            target.parent.insertBefore(wrapper, target.before);
+    function render_session_company() {
+        if (!frappe.boot?.nepal_compliance_settings?.enforce_session_defaults) {
+            remove_indicator();
+            return;
         }
+
+        const company = get_session_company();
+        const targets = get_indicator_targets();
+
+        if (!targets.length) {
+            remove_indicator();
+            return;
+        }
+
+        const active_wrapper_ids = new Set(targets.map(target => get_wrapper_id(target.placement)));
+        document.querySelectorAll(".nepal-session-company-wrapper").forEach(wrapper => {
+            if (!active_wrapper_ids.has(wrapper.id)) {
+                wrapper.remove();
+            }
+        });
+
+        targets.forEach(target => {
+            let wrapper = document.getElementById(get_wrapper_id(target.placement));
+
+            if (!wrapper) {
+                wrapper = document.createElement("div");
+                wrapper.id = get_wrapper_id(target.placement);
+                wrapper.className = "nepal-session-company-wrapper";
+            }
+
+            wrapper.dataset.placement = target.placement;
+            render_company_indicator_button(wrapper, company);
+
+            if (!target.before || target.before.previousElementSibling !== wrapper) {
+                target.parent.insertBefore(wrapper, target.before);
+            }
+        });
     }
 
     function watch_default_updates() {
