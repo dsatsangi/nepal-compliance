@@ -1,6 +1,6 @@
 import frappe
 
-def get_session_default_conditions(user):
+def get_session_default_conditions(user=None):
     if not user:
         user = frappe.session.user
 
@@ -16,7 +16,7 @@ def get_session_default_conditions(user):
     if not enforce:
         return ""
 
-    company = frappe.defaults.get_user_default("company", user)
+    company = frappe.defaults.get_user_default("company", user) or frappe.defaults.get_user_default("Company", user)
     
     if company:
         # frappe.db.escape escapes the string AND adds surrounding quotes

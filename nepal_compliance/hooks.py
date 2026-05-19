@@ -36,6 +36,7 @@ app_include_js = [
                  "/assets/nepal_compliance/js/nepali_date.js",
                  "/assets/nepal_compliance/js/formatter.js",
                  "/assets/nepal_compliance/js/report_filter.js",
+                 "/assets/nepal_compliance/js/session_defaults.js",
                  "/assets/nepal_compliance/js/icon_patch.js",
                  "/assets/nepal_compliance/js/calendar_theme.js",
                  "/assets/nepal_compliance/js/employee_benefit_claim.js",
@@ -205,6 +206,8 @@ permission_query_conditions = {
     "Material Request": "nepal_compliance.permissions.get_session_default_conditions",
     "Stock Reconciliation": "nepal_compliance.permissions.get_session_default_conditions",
     "Asset": "nepal_compliance.permissions.get_session_default_conditions",
+    "Warehouse": "nepal_compliance.permissions.get_session_default_conditions",
+    "Bin": "nepal_compliance.permissions.get_session_default_conditions",
 }
 #
 # has_permission = {
