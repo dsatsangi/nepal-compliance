@@ -44,7 +44,18 @@ const setupFieldTriggers = (doctype, config) => {
         refresh(frm) {
             if (config.hide_fields) hideFields(frm, config.hide_fields);
             if (config.auto_trigger && frm.doc[config.auto_trigger]) {
-                frm.trigger(config.auto_trigger);
+                // Sync the BS-date sibling field directly instead of frm.trigger(),
+                // which re-fires the AD field's own change handlers on every refresh
+                // (e.g. re-running after every Save) and can wipe unrelated data
+                // that doctype scripts clear on a genuine date change.
+                const pair = config.date_pairs?.find(([adField]) => adField === config.auto_trigger);
+                if (pair) {
+                    const [adField, bsField] = pair;
+                    const converted = convertADtoBS(frm.doc[adField]);
+                    if (frm.doc[bsField] !== converted) {
+                        frm.set_value(bsField, converted);
+                    }
+                }
             }
             config.refresh_action?.(frm);
         },
