@@ -38,9 +38,13 @@ app_include_js = [
     "/assets/nepal_compliance/js/formatter.js",
     "/assets/nepal_compliance/js/report_filter.js",
     "/assets/nepal_compliance/js/icon_patch.js",
-    "/assets/nepal_compliance/js/employee_benefit_claim.js"]
+    "/assets/nepal_compliance/js/employee_benefit_claim.js",
+    "/assets/nepal_compliance/js/session_defaults.js",
+    "/assets/nepal_compliance/js/session_company_indicator.js"]
 
 boot_session = "nepal_compliance.boot.get_boot_info"
+before_request = ["nepal_compliance.patches.sanitize_html_patch.apply"]
+before_job = ["nepal_compliance.patches.sanitize_html_patch.apply"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/nepal_compliance/css/nepal_compliance.css"
@@ -147,9 +151,22 @@ before_uninstall = "nepal_compliance.uninstall.cleanup_salary_structures"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
+permission_query_conditions = {
+    "Journal Entry": "nepal_compliance.permissions.get_session_default_conditions",
+    "Payment Entry": "nepal_compliance.permissions.get_session_default_conditions",
+    "Purchase Invoice": "nepal_compliance.permissions.get_session_default_conditions",
+    "Purchase Receipt": "nepal_compliance.permissions.get_session_default_conditions",
+    "Stock Entry": "nepal_compliance.permissions.get_session_default_conditions",
+    "Sales Invoice": "nepal_compliance.permissions.get_session_default_conditions",
+    "Delivery Note": "nepal_compliance.permissions.get_session_default_conditions",
+    "Sales Order": "nepal_compliance.permissions.get_session_default_conditions",
+    "Purchase Order": "nepal_compliance.permissions.get_session_default_conditions",
+    "Material Request": "nepal_compliance.permissions.get_session_default_conditions",
+    "Stock Reconciliation": "nepal_compliance.permissions.get_session_default_conditions",
+    "Asset": "nepal_compliance.permissions.get_session_default_conditions",
+    "Warehouse": "nepal_compliance.permissions.get_session_default_conditions",
+    "Bin": "nepal_compliance.permissions.get_session_default_conditions",
+}
 #
 # has_permission = {
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
