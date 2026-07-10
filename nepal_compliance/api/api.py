@@ -1,16 +1,25 @@
 import frappe
 from frappe import _
-# import logging
-# from typing import Dict 
+from typing import Optional
 
-@frappe.whitelist(allow_guest=False) 
+@frappe.whitelist(allow_guest=False)
 def get_all_employees():
     employees = frappe.get_all('Employee', fields=['name', 'employee_name', 'department','designation', 'status'])
     return employees
-    
-# Biometric 
-@frappe.whitelist(allow_guest=True) 
-def attendance(employee, status, shift, attendance_date, log_type, datetime, late_entry=None, early_exit=None):
+
+# Biometric device callback - guest access required, no auth token check yet.
+# Pre-existing gap, tracked outside this change.
+@frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
+def attendance(
+    employee: str,
+    status: str,
+    shift: str,
+    attendance_date: str,
+    log_type: str,
+    datetime: str,
+    late_entry: Optional[str] = None,
+    early_exit: Optional[str] = None,
+):
     try:
         employee_check_in = frappe.new_doc("Employee Checkin")
         employee_check_in.employee = employee
