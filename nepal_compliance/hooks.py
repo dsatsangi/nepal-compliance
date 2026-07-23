@@ -166,6 +166,16 @@ permission_query_conditions = {
     "Asset": "nepal_compliance.permissions.get_session_default_conditions",
     "Warehouse": "nepal_compliance.permissions.get_session_default_conditions",
     "Bin": "nepal_compliance.permissions.get_session_default_conditions",
+    "Asset Capitalization": "nepal_compliance.permissions.get_session_default_conditions",
+    "Asset Repair": "nepal_compliance.permissions.get_session_default_conditions",
+    "Dunning": "nepal_compliance.permissions.get_session_default_conditions",
+    "Invoice Discounting": "nepal_compliance.permissions.get_session_default_conditions",
+    "Landed Cost Voucher": "nepal_compliance.permissions.get_session_default_conditions",
+    "Period Closing Voucher": "nepal_compliance.permissions.get_session_default_conditions",
+    "Process Deferred Accounting": "nepal_compliance.permissions.get_session_default_conditions",
+    "POS Invoice": "nepal_compliance.permissions.get_session_default_conditions",
+    "Shareholder": "nepal_compliance.permissions.get_session_default_conditions",
+    "Customer": "nepal_compliance.permissions.get_customer_company_conditions",
 }
 #
 # has_permission = {

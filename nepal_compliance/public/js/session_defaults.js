@@ -53,7 +53,7 @@
         return frappe.defaults.get_user_default("company") || frappe.defaults.get_user_default("Company");
     };
 
-    const apply_session_filter = function (listview) {
+    const apply_session_filter = function (listview, filter_doctype) {
         if (!should_enforce_session_defaults()) {
             return;
         }
@@ -63,16 +63,18 @@
             return;
         }
 
+        const target_doctype = filter_doctype || listview.doctype;
+
         let filters = listview.filter_area.get();
-        const company_filters = filters.filter(f => f[1] === "company");
+        const company_filters = filters.filter(f => f[0] === target_doctype && f[1] === "company");
         const correct_filter_exists = company_filters.find(f => f[3] === company);
 
         if (company_filters.length === 1 && correct_filter_exists) {
             return;
         }
 
-        filters = filters.filter(f => f[1] !== "company");
-        filters.push([listview.doctype, "company", "=", company]);
+        filters = filters.filter(f => !(f[0] === target_doctype && f[1] === "company"));
+        filters.push([target_doctype, "company", "=", company]);
 
         listview.filter_area.clear(false).then(() => {
             listview.filter_area.set(filters);
@@ -133,7 +135,7 @@
         return true;
     };
 
-    session_default_doctypes.forEach(doctype => {
+    const register_company_filter = function (doctype, filter_doctype) {
         frappe.listview_settings[doctype] = frappe.listview_settings[doctype] || {};
         const old_onload = frappe.listview_settings[doctype].onload;
 
@@ -141,9 +143,11 @@
             if (old_onload) {
                 old_onload.call(this, listview);
             }
-            apply_session_filter(listview);
+            apply_session_filter(listview, filter_doctype);
         };
-    });
+    };
+
+    session_default_doctypes.forEach(doctype => register_company_filter(doctype, doctype));
 
     if (!patch_query_report()) {
         const patch_interval = setInterval(() => {
