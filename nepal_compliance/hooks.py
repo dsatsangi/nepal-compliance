@@ -26,7 +26,8 @@ add_to_apps_screen = [
 # include js, css files in header of desk.html
 app_include_css = [
     "/assets/nepal_compliance/css/nepali_calendar.css",
-    "/assets/nepal_compliance/css/date.css"]
+    "/assets/nepal_compliance/css/date.css",
+    "/assets/nepal_compliance/css/session_company_indicator.css"]
 
 app_include_js = [
     "https://unpkg.com/react@18.3.1/umd/react.production.min.js",
@@ -176,6 +177,8 @@ permission_query_conditions = {
     "POS Invoice": "nepal_compliance.permissions.get_session_default_conditions",
     "Shareholder": "nepal_compliance.permissions.get_session_default_conditions",
     "Customer": "nepal_compliance.permissions.get_customer_company_conditions",
+    "Supplier": "nepal_compliance.permissions.get_supplier_company_conditions",
+    "Item": "nepal_compliance.permissions.get_item_company_conditions",
 }
 #
 # has_permission = {
