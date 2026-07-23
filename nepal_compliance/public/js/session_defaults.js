@@ -18,7 +18,16 @@
         "Stock Reconciliation",
         "Asset",
         "Warehouse",
-        "Bin"
+        "Bin",
+        "Asset Capitalization",
+        "Asset Repair",
+        "Dunning",
+        "Invoice Discounting",
+        "Landed Cost Voucher",
+        "Period Closing Voucher",
+        "Process Deferred Accounting",
+        "POS Invoice",
+        "Shareholder"
     ];
 
     const session_default_reports = [

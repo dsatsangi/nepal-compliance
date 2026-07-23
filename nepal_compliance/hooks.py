@@ -207,6 +207,9 @@ doc_events = {
     "Sales Order" : {
         "validate": "nepal_compliance.utils.load_nepali_date"
     },
+    "Journal Entry" : {
+        "validate": "nepal_compliance.utils.load_nepali_date"
+    },
     "Salary Slip": {
         "after_insert": "nepal_compliance.patches.payroll_entry.execute",
     }
