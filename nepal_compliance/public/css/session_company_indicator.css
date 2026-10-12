@@ -57,3 +57,44 @@
 	opacity: 0.6;
 	pointer-events: none;
 }
+
+/* /desk apps page top bar: same chip, as a compact pill beside the notification bell. */
+.desktop-navbar .nepal-session-company-wrapper {
+	display: inline-flex;
+	align-items: center;
+}
+
+.nepal-session-company-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: 30px;
+	max-width: 260px;
+	padding: 0 10px;
+	border: 1px solid var(--outline-gray-2, var(--border-color));
+	border-radius: 8px;
+	background: var(--surface-gray-2, var(--control-bg));
+	font-size: var(--text-sm);
+	line-height: 1;
+	cursor: pointer;
+	transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.nepal-session-company-pill:hover,
+.nepal-session-company-pill:focus-visible {
+	background: var(--surface-gray-3, var(--control-bg));
+	border-color: var(--ink-gray-5);
+	outline: none;
+}
+
+.nepal-session-company-pill .indicator-icon {
+	display: inline-flex;
+	color: var(--blue-500);
+}
+
+/* Phones: drop the caption so the pill fits beside the search bar. */
+@media (max-width: 576px) {
+	.nepal-session-company-pill .indicator-caption {
+		display: none;
+	}
+}

@@ -36,8 +36,20 @@
         return null;
     }
 
+    // The /desk apps page (Frappe 16.51+) has its own top bar with no body sidebar in view;
+    // the selector goes in its right-hand cluster, ahead of the cloud / notification buttons.
+    function get_desktop_target() {
+        const navbar = document.querySelector(".desktop-navbar");
+        const anchor = navbar?.querySelector(".desktop-cloud-settings, .desktop-notifications");
+        if (!anchor) {
+            return null;
+        }
+
+        return { parent: anchor.parentElement, before: anchor, placement: "desktop" };
+    }
+
     function get_indicator_targets() {
-        return [get_sidebar_target()].filter(Boolean);
+        return [get_sidebar_target(), get_desktop_target()].filter(Boolean);
     }
 
     function get_wrapper_id(placement) {
@@ -182,30 +194,46 @@
         wrapper.innerHTML = "";
         wrapper.company_control = null;
 
-        indicator = document.createElement("div");
+        indicator = document.createElement(placement === "desktop" ? "button" : "div");
         indicator.id = get_indicator_id(placement);
-        indicator.className = "standard-sidebar-item nepal-session-company-indicator";
+        indicator.className = placement === "desktop"
+            ? "btn-reset nepal-session-company-indicator nepal-session-company-pill"
+            : "standard-sidebar-item nepal-session-company-indicator";
         indicator.dataset.company = company || "";
         indicator.title = company
             ? __("Active session default company: {0}", [company])
             : __("Active session default company");
-        indicator.innerHTML = `
-            <a class="item-anchor" role="button" tabindex="0" aria-haspopup="dialog"
-                aria-label="${__("Session Default Company")}">
-                <span class="sidebar-item-icon" item-icon="building">
-                    ${frappe.utils.icon("building", "sm", "", "", "current-color")}
-                </span>
-                <span class="sidebar-item-label indicator-label">
-                    <span class="indicator-caption">${__("Company")}</span>
-                    <span class="indicator-value"></span>
-                </span>
-                <span class="sidebar-item-suffix indicator-caret" aria-hidden="true">
-                    ${frappe.utils.icon("chevrons-up-down", "xs", "", "", "current-color")}
-                </span>
-            </a>
+
+        const label_html = `
+            <span class="indicator-caption">${__("Company")}</span>
+            <span class="indicator-value"></span>
         `;
+        const icon_html = frappe.utils.icon("building", "sm", "", "", "current-color");
+        const caret_html = frappe.utils.icon("chevrons-up-down", "xs", "", "", "current-color");
+
+        if (placement === "desktop") {
+            indicator.type = "button";
+            indicator.setAttribute("aria-haspopup", "dialog");
+            indicator.setAttribute("aria-label", __("Session Default Company"));
+            indicator.innerHTML = `
+                <span class="indicator-icon">${icon_html}</span>
+                <span class="indicator-label">${label_html}</span>
+                <span class="indicator-caret" aria-hidden="true">${caret_html}</span>
+            `;
+        } else {
+            indicator.innerHTML = `
+                <a class="item-anchor" role="button" tabindex="0" aria-haspopup="dialog"
+                    aria-label="${__("Session Default Company")}">
+                    <span class="sidebar-item-icon" item-icon="building">${icon_html}</span>
+                    <span class="sidebar-item-label indicator-label">${label_html}</span>
+                    <span class="sidebar-item-suffix indicator-caret" aria-hidden="true">
+                        ${caret_html}
+                    </span>
+                </a>
+            `;
+        }
         set_indicator_label(indicator, company);
-        const anchor = indicator.querySelector(".item-anchor");
+        const anchor = indicator.querySelector(".item-anchor") || indicator;
         anchor.addEventListener("click", event => {
             event.preventDefault();
             event.stopPropagation();
@@ -284,33 +312,40 @@
     frappe.after_ajax(() => {
         render_session_company();
         watch_default_updates();
-        watch_sidebar();
+        watch_mounts();
     });
 
-    // The sidebar is rebuilt when switching modules, which drops the selector; put it back.
-    function watch_sidebar() {
-        const container = document.querySelector(".body-sidebar-container");
-        if (!container || container.__nepal_compliance_observed) {
+    // The sidebar is rebuilt when switching modules and the /desk page re-renders its top bar on
+    // every show; both drop the selector, so put it back whenever a mount point lacks it.
+    function watch_mounts() {
+        if (watch_mounts.observer) {
             return;
         }
-        container.__nepal_compliance_observed = true;
 
-        new MutationObserver(() => {
-            if (!frappe.boot?.nepal_compliance_settings?.enforce_session_defaults) {
+        let scheduled = false;
+        watch_mounts.observer = new MutationObserver(() => {
+            if (scheduled || !frappe.boot?.nepal_compliance_settings?.enforce_session_defaults) {
                 return;
             }
-            const target = get_sidebar_target();
-            const wrapper = document.getElementById(get_wrapper_id("sidebar"));
-            if (target && (!wrapper || !target.parent.contains(wrapper))) {
-                render_session_company();
-            }
-        }).observe(container, { childList: true, subtree: true });
+            scheduled = true;
+            requestAnimationFrame(() => {
+                scheduled = false;
+                const missing = get_indicator_targets().some(target => {
+                    const wrapper = document.getElementById(get_wrapper_id(target.placement));
+                    return !wrapper || !target.parent.contains(wrapper);
+                });
+                if (missing) {
+                    render_session_company();
+                }
+            });
+        });
+        watch_mounts.observer.observe(document.body, { childList: true, subtree: true });
     }
 
     $(document).on("sidebar_setup page-change", () => {
         setTimeout(() => {
             render_session_company();
-            watch_sidebar();
+            watch_mounts();
         }, 0);
     });
 
