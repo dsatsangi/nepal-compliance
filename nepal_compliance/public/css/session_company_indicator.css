@@ -1,75 +1,56 @@
-/* Navbar placement: styled like a native Frappe indicator-pill */
-.nepal-session-company-wrapper[data-placement="navbar"] {
-	display: inline-flex;
-	align-items: center;
-	margin: 0 8px;
-}
-
-.nepal-session-company-wrapper[data-placement="navbar"] .nepal-session-company-indicator {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	height: 28px;
-	padding: 0 10px;
-	border: none;
-	border-radius: var(--border-radius-full);
-	background: var(--bg-gray);
-	color: var(--text-on-gray);
-	font-size: var(--text-sm);
-	font-weight: 500;
-	line-height: 1;
-	cursor: pointer;
-	transition: background-color 0.15s ease;
-}
-
-.nepal-session-company-wrapper[data-placement="navbar"] .nepal-session-company-indicator:hover,
-.nepal-session-company-wrapper[data-placement="navbar"] .nepal-session-company-indicator:focus-visible {
-	background: var(--control-bg);
-	outline: none;
-}
-
-/* Sidebar placement: styled like a native .standard-sidebar-item */
-.body-sidebar .nepal-session-company-wrapper[data-placement="sidebar"] {
+/* Session default company selector, rendered as a native `.standard-sidebar-item` row in the
+   sidebar's standard-items band (Frappe 16.51+). Frappe's own sidebar styles handle the row's
+   layout and the collapsed rail (label and suffix fold away); the rules below only set it apart
+   from the plain Search / Notification rows as a bordered "switcher" chip. */
+.body-sidebar .nepal-session-company-wrapper {
 	display: block;
-	margin-bottom: 1px;
+	margin: 6px 0 2px;
 }
 
-.body-sidebar .nepal-session-company-wrapper[data-placement="sidebar"] .nepal-session-company-indicator {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	width: 100%;
-	height: 28px;
-	padding: 0 7px;
-	border: none;
-	border-radius: 8px;
-	background: transparent;
-	color: var(--ink-gray-6);
-	font-size: var(--text-sm);
-	font-weight: 400;
-	line-height: 1;
+.nepal-session-company-indicator .item-anchor {
 	cursor: pointer;
-	transition: background-color 0.15s ease;
+	border: 1px solid var(--outline-gray-2, var(--border-color));
+	border-radius: 8px;
+	background: var(--surface-gray-2, var(--control-bg));
+	transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.body-sidebar .nepal-session-company-wrapper[data-placement="sidebar"] .nepal-session-company-indicator:hover,
-.body-sidebar .nepal-session-company-wrapper[data-placement="sidebar"] .nepal-session-company-indicator:focus-visible {
-	background: var(--sidebar-hover-color);
+.nepal-session-company-indicator .item-anchor:hover,
+.nepal-session-company-indicator .item-anchor:focus-visible {
+	background: var(--surface-gray-3, var(--control-bg));
+	border-color: var(--ink-gray-5);
 	outline: none;
 }
 
-/* Shared, both placements */
+.nepal-session-company-indicator .sidebar-item-icon {
+	color: var(--blue-500);
+}
+
+.nepal-session-company-indicator .indicator-label {
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
+	min-width: 0;
+}
+
+.nepal-session-company-indicator .indicator-caption {
+	flex-shrink: 0;
+	font-size: var(--text-xs);
+	color: var(--ink-gray-5);
+}
+
 .nepal-session-company-indicator .indicator-value {
+	font-weight: 600;
+	color: var(--ink-gray-8);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	max-width: 160px;
 }
 
 .nepal-session-company-indicator .indicator-caret {
-	font-size: 10px;
-	opacity: 0.6;
+	display: inline-flex;
 	margin-left: auto;
+	color: var(--ink-gray-5);
 }
 
 .nepal-session-company-wrapper.is-saving .nepal-session-company-indicator {

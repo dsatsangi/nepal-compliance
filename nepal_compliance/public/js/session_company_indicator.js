@@ -10,63 +10,34 @@
         );
     }
 
-    function get_frappe_major_version() {
-        const version = frappe.boot?.versions?.frappe || "";
-        return Number.parseInt(version.split(".")[0], 10) || 0;
-    }
-
-    function is_frappe_v16() {
-        return get_frappe_major_version() === 16;
-    }
-
-    function get_search_container() {
-        return (
-            document.querySelector(".navbar .search-bar") ||
-            document.querySelector(".navbar .navbar-search") ||
-            document.querySelector(".navbar .awesomplete") ||
-            document.querySelector(".navbar form[role='search']")
-        );
-    }
-
-    function get_navbar_target() {
-        const navbar_right = document.querySelector(".navbar .navbar-right");
-        if (navbar_right) {
-            return {
-                parent: navbar_right,
-                before: navbar_right.firstElementChild,
-                placement: "navbar"
-            };
-        }
-
-        const search_container = get_search_container();
-        if (!search_container) {
-            return null;
-        }
-
-        return {
-            parent: search_container.parentNode,
-            before: search_container,
-            placement: "navbar"
-        };
-    }
-
+    // Frappe 16.51+ renders Search / Notification rows in `.standard-items-band`; older v16
+    // builds used `.standard-items-sections`. The selector is added as a row in the same band.
     function get_sidebar_target() {
         const sidebar = document.querySelector(".body-sidebar");
-        const standard_items = sidebar?.querySelector(".standard-items-sections");
-
-        if (!sidebar || !standard_items) {
+        if (!sidebar) {
             return null;
         }
 
-        return {
-            parent: sidebar,
-            before: standard_items,
-            placement: "sidebar"
-        };
+        const band = sidebar.querySelector(".standard-items-band");
+        if (band) {
+            return { parent: band, before: null, placement: "sidebar" };
+        }
+
+        const legacy_items = sidebar.querySelector(".standard-items-sections");
+        if (legacy_items) {
+            return { parent: sidebar, before: legacy_items, placement: "sidebar" };
+        }
+
+        const sidebar_top = sidebar.querySelector(".body-sidebar-top");
+        if (sidebar_top) {
+            return { parent: sidebar, before: sidebar_top, placement: "sidebar" };
+        }
+
+        return null;
     }
 
     function get_indicator_targets() {
-        return [get_navbar_target(), get_sidebar_target()].filter(Boolean);
+        return [get_sidebar_target()].filter(Boolean);
     }
 
     function get_wrapper_id(placement) {
@@ -204,32 +175,47 @@
     }
 
     function render_company_indicator_button(wrapper, company) {
-        const placement = wrapper.dataset.placement || "navbar";
+        const placement = wrapper.dataset.placement || "sidebar";
         let indicator = document.getElementById(get_indicator_id(placement));
 
         indicator?.remove();
         wrapper.innerHTML = "";
         wrapper.company_control = null;
 
-        indicator = document.createElement("button");
+        indicator = document.createElement("div");
         indicator.id = get_indicator_id(placement);
-        indicator.type = "button";
-        indicator.className = "nepal-session-company-indicator";
-        indicator.setAttribute("aria-haspopup", "true");
-        indicator.setAttribute("aria-expanded", "false");
+        indicator.className = "standard-sidebar-item nepal-session-company-indicator";
         indicator.dataset.company = company || "";
         indicator.title = company
             ? __("Active session default company: {0}", [company])
             : __("Active session default company");
         indicator.innerHTML = `
-            <span class="indicator-value"></span>
-            <span class="indicator-caret" aria-hidden="true">&#9662;</span>
+            <a class="item-anchor" role="button" tabindex="0" aria-haspopup="dialog"
+                aria-label="${__("Session Default Company")}">
+                <span class="sidebar-item-icon" item-icon="building">
+                    ${frappe.utils.icon("building", "sm", "", "", "current-color")}
+                </span>
+                <span class="sidebar-item-label indicator-label">
+                    <span class="indicator-caption">${__("Company")}</span>
+                    <span class="indicator-value"></span>
+                </span>
+                <span class="sidebar-item-suffix indicator-caret" aria-hidden="true">
+                    ${frappe.utils.icon("chevrons-up-down", "xs", "", "", "current-color")}
+                </span>
+            </a>
         `;
         set_indicator_label(indicator, company);
-        indicator.addEventListener("click", event => {
+        const anchor = indicator.querySelector(".item-anchor");
+        anchor.addEventListener("click", event => {
             event.preventDefault();
             event.stopPropagation();
             open_session_company_dialog(wrapper);
+        });
+        anchor.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                open_session_company_dialog(wrapper);
+            }
         });
 
         wrapper.insertBefore(indicator, wrapper.firstChild);
@@ -268,7 +254,10 @@
             wrapper.dataset.placement = target.placement;
             render_company_indicator_button(wrapper, company);
 
-            if (!target.before || target.before.previousElementSibling !== wrapper) {
+            const in_place = target.before
+                ? target.before.previousElementSibling === wrapper
+                : target.parent.lastElementChild === wrapper;
+            if (!in_place) {
                 target.parent.insertBefore(wrapper, target.before);
             }
         });
@@ -295,12 +284,34 @@
     frappe.after_ajax(() => {
         render_session_company();
         watch_default_updates();
+        watch_sidebar();
     });
 
-    $(document).on("sidebar_setup page-change", () => {
-        if (is_frappe_v16()) {
-            setTimeout(render_session_company, 0);
+    // The sidebar is rebuilt when switching modules, which drops the selector; put it back.
+    function watch_sidebar() {
+        const container = document.querySelector(".body-sidebar-container");
+        if (!container || container.__nepal_compliance_observed) {
+            return;
         }
+        container.__nepal_compliance_observed = true;
+
+        new MutationObserver(() => {
+            if (!frappe.boot?.nepal_compliance_settings?.enforce_session_defaults) {
+                return;
+            }
+            const target = get_sidebar_target();
+            const wrapper = document.getElementById(get_wrapper_id("sidebar"));
+            if (target && (!wrapper || !target.parent.contains(wrapper))) {
+                render_session_company();
+            }
+        }).observe(container, { childList: true, subtree: true });
+    }
+
+    $(document).on("sidebar_setup page-change", () => {
+        setTimeout(() => {
+            render_session_company();
+            watch_sidebar();
+        }, 0);
     });
 
     frappe.router?.on?.("change", render_session_company);
