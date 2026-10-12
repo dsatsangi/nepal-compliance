@@ -27,7 +27,7 @@ add_to_apps_screen = [
 app_include_css = [
     "/assets/nepal_compliance/css/nepali_calendar.css",
     "/assets/nepal_compliance/css/date.css",
-    "/assets/nepal_compliance/css/session_company_indicator.css"]
+    "session_company_indicator.bundle.css"]
 
 app_include_js = [
     "https://unpkg.com/react@18.3.1/umd/react.production.min.js",
@@ -41,7 +41,7 @@ app_include_js = [
     "/assets/nepal_compliance/js/icon_patch.js",
     "/assets/nepal_compliance/js/employee_benefit_claim.js",
     "/assets/nepal_compliance/js/session_defaults.js",
-    "/assets/nepal_compliance/js/session_company_indicator.js"]
+    "session_company_indicator.bundle.js"]
 
 boot_session = "nepal_compliance.boot.get_boot_info"
 before_request = ["nepal_compliance.patches.sanitize_html_patch.apply"]
