@@ -11,6 +11,7 @@ class NepalComplianceSettings(Document):
         for key in (
             "nepal_compliance:bs_enabled",
             "nepal_compliance:date_format",
+            "nepal_compliance:report_bs_columns",
         ):
             try:
                 cache.delete_key(key)

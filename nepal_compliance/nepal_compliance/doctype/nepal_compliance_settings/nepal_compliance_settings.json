@@ -10,6 +10,7 @@
   "prevent_out_of_sequence_doctype_submission",
   "enable_nepali_date",
   "date_format",
+  "add_bs_date_column_in_reports",
   "max_backdate_days_allowed",
   "document_control_section",
   "restrict_sales_invoice_cancellation",
@@ -120,6 +121,13 @@
    "fieldtype": "Select",
    "label": "Date Format",
    "options": "YYYY-MM-DD\nYYYY-M-D\nYYYY.MM.DD\nYYYY.M.D\nYYYY/MM/DD\nYYYY/M/D"
+  },
+  {
+   "default": "1",
+   "description": "Adds a BS date column next to every date column in query and script reports, including Excel/CSV/PDF exports. Each user can hide it from the report page menu.",
+   "fieldname": "add_bs_date_column_in_reports",
+   "fieldtype": "Check",
+   "label": "Add BS Date Column in Reports"
   },
   {
    "fieldname": "bs_day",

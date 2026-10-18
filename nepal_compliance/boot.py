@@ -34,11 +34,17 @@ def get_boot_info(bootinfo):
         bootinfo["nepal_compliance_settings"] = {
             "enforce_session_defaults": frappe.db.get_single_value(
                 "Nepal Compliance Settings", "enforce_session_defaults"
-            )
+            ),
+            "add_bs_date_column_in_reports": frappe.db.get_single_value(
+                "Nepal Compliance Settings", "add_bs_date_column_in_reports"
+            ),
         }
     except Exception:
         frappe.log_error(
             "Failed to retrieve enforce_session_defaults for boot info",
             "Nepal Compliance"
         )
-        bootinfo["nepal_compliance_settings"] = {"enforce_session_defaults": False}
+        bootinfo["nepal_compliance_settings"] = {
+            "enforce_session_defaults": False,
+            "add_bs_date_column_in_reports": False,
+        }

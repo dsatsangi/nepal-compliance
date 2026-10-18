@@ -117,7 +117,8 @@ def apply_runtime_patches():
                 return _orig_formatdate(value, format)
 
         def patched_make_xlsx(data, sheet_name, *args, **kwargs):
-            if not is_bs_enabled():
+            # query reports with the added BS columns export AD + BS as is
+            if not is_bs_enabled() or frappe.flags.get("nc_report_bs_columns"):
                 return _orig_make_xlsx(data, sheet_name, *args, **kwargs)
 
             converted = []

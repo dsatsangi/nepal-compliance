@@ -41,11 +41,18 @@ app_include_js = [
     "/assets/nepal_compliance/js/icon_patch.js",
     "/assets/nepal_compliance/js/employee_benefit_claim.js",
     "/assets/nepal_compliance/js/session_defaults.js",
+    "report_bs_columns.bundle.js",
     "session_company_indicator.bundle.js"]
 
 boot_session = "nepal_compliance.boot.get_boot_info"
-before_request = ["nepal_compliance.patches.sanitize_html_patch.apply"]
-before_job = ["nepal_compliance.patches.sanitize_html_patch.apply"]
+before_request = [
+    "nepal_compliance.patches.sanitize_html_patch.apply",
+    "nepal_compliance.patches.report_bs_columns.apply",
+]
+before_job = [
+    "nepal_compliance.patches.sanitize_html_patch.apply",
+    "nepal_compliance.patches.report_bs_columns.apply",
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/nepal_compliance/css/nepal_compliance.css"

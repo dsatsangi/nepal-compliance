@@ -7,6 +7,16 @@ def get_all_employees():
     employees = frappe.get_all('Employee', fields=['name', 'employee_name', 'department','designation', 'status'])
     return employees
 
+@frappe.whitelist(allow_guest=False)
+def set_report_bs_dates_visibility(show: bool):
+    """Per-user on-screen visibility of the BS date columns added to reports
+    by patches/report_bs_columns.py. Exports always include them."""
+    from nepal_compliance.patches.report_bs_columns import VISIBILITY_DEFAULT_KEY
+
+    value = "show" if frappe.utils.sbool(show) else "hide"
+    frappe.defaults.set_user_default(VISIBILITY_DEFAULT_KEY, value)
+    return value
+
 # Biometric device callback - guest access required, no auth token check yet.
 # Pre-existing gap, tracked outside this change.
 @frappe.whitelist(allow_guest=True)  # nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
