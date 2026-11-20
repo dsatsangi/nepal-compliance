@@ -71,6 +71,19 @@
         }
     }
 
+    // ERPNext's Customer/Supplier Overview tab remembers its own company dropdown in
+    // localStorage ("<party>-overview:company") and prefers it over the session default,
+    // so a stale value hides the newly selected session company. Drop it on company switch.
+    function clear_party_overview_company_pref() {
+        ["customer", "supplier"].forEach(party_key => {
+            try {
+                localStorage.removeItem(`${party_key}-overview:company`);
+            } catch {
+                // storage unavailable; nothing to clear
+            }
+        });
+    }
+
     async function get_company_indicator_label(company) {
         if (!company) {
             return __("Set Company");
@@ -166,6 +179,7 @@
             }
 
             set_local_company_default(company);
+            clear_party_overview_company_pref();
             if (dialog) {
                 dialog.hide();
             }

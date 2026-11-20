@@ -250,9 +250,10 @@ scheduler_events = {
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "nepal_compliance.event.get_events"
-# }
+override_whitelisted_methods = {
+    "erpnext.selling.doctype.customer.customer_overview.get_customer_companies": "nepal_compliance.overrides.party_overview.get_customer_companies",
+    "erpnext.buying.doctype.supplier.supplier_overview.get_supplier_companies": "nepal_compliance.overrides.party_overview.get_supplier_companies",
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
