@@ -35,33 +35,39 @@ class TestCBMSUtils(unittest.TestCase):
 # Configuration tests
 class TestCBMSConfiguration(unittest.TestCase):
 
-    @patch("nepal_compliance.cbms_api.frappe.get_doc")
-    def test_cbms_disabled(self, mock_get_doc):
-        mock_settings = MagicMock()
-        mock_settings.configure_cbms = 0
-        mock_get_doc.return_value = mock_settings
+    def _cbms(self, rows, company="HLS"):
+        cbms = CBMSIntegration(SimpleNamespace(company=company))
+        settings = MagicMock()
+        settings.get.return_value = rows
+        patcher = patch("nepal_compliance.cbms_api.frappe.get_cached_doc", return_value=settings)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        return cbms
 
-        cbms = CBMSIntegration(None)
-        result = cbms.is_cbms_configured()
+    def _row(self, company="HLS", enabled=1, user="user"):
+        return SimpleNamespace(
+            name="row1", company=company, enabled=enabled, user_name=user,
+            panvat_no="123456789", sales_api_url="http://test", credit_note_api_url="http://test",
+        )
 
-        self.assertEqual(result["status"], "disabled")
+    def test_company_without_row(self):
+        cbms = self._cbms([self._row("Other")])
+        self.assertEqual(cbms.is_cbms_configured()["status"], "not_found")
 
-    @patch("nepal_compliance.cbms_api.frappe.get_doc")
-    def test_cbms_configured(self, mock_get_doc):
-        mock_settings = MagicMock()
-        mock_settings.configure_cbms = 1
-        mock_settings.user_name = "user"
-        mock_settings.panvat_no = "123456789"
-        mock_settings.sales_api_url = "http://test"
-        mock_settings.credit_note_api_url = "http://test"
-        mock_settings.get_password.return_value = "pass"
+    def test_cbms_disabled(self):
+        cbms = self._cbms([self._row(enabled=0)])
+        self.assertEqual(cbms.is_cbms_configured()["status"], "disabled")
 
-        mock_get_doc.return_value = mock_settings
+    @patch("nepal_compliance.cbms_api.get_decrypted_password", return_value="pass")
+    def test_cbms_configured_routes_by_company(self, _pw):
+        cbms = self._cbms([self._row("Other", user="other"), self._row("HLS", user="hls")])
+        self.assertEqual(cbms.is_cbms_configured()["status"], "configured")
+        self.assertEqual(cbms.cbms_settings.user_name, "hls")
 
-        cbms = CBMSIntegration(None)
-        result = cbms.is_cbms_configured()
-
-        self.assertEqual(result["status"], "configured")
+    @patch("nepal_compliance.cbms_api.get_decrypted_password", return_value=None)
+    def test_cbms_incomplete(self, _pw):
+        cbms = self._cbms([self._row()])
+        self.assertEqual(cbms.is_cbms_configured()["status"], "configuration_error")
 
 
 # Send to CBMS tests (Mocked HTTP)

@@ -6,49 +6,67 @@ from frappe.utils.background_jobs import enqueue
 from frappe import _
 from datetime import datetime
 from typing import Optional, Any
+from types import SimpleNamespace
 
 class CBMSIntegration:
     def __init__(self, doc):
         self.doc = doc
-        self.cbms_settings = None
         self.api_url = None
         self.invoice_payload = None
 
+    def get_company_credentials(self, company):
+        """Return the enabled-or-not credential row for `company`, or None."""
+        if not company:
+            return None
+        settings = frappe.get_cached_doc("CBMS Settings")
+        for row in settings.get("credentials") or []:
+            if row.company == company:
+                return row
+        return None
+
     def is_cbms_configured(self):
-        try:
-            self.cbms_settings = frappe.get_doc("CBMS Settings")
-            
-            configure_cbms_enabled = getattr(self.cbms_settings, "configure_cbms", None)
-
-            if not configure_cbms_enabled:
-                return {
-                    "status": "disabled",
-                    "message": _("CBMS is disabled.")
-                }
-            
-            if not all([
-                self.cbms_settings.user_name,
-                self.cbms_settings.get_password("password"),  
-                self.cbms_settings.panvat_no,
-                self.cbms_settings.sales_api_url,  
-                self.cbms_settings.credit_note_api_url  
-            ]):
-                return {
-                    "status": "configuration_error",
-                    "message": _("CBMS is enabled but configuration is incomplete. Please fill all required fields in CBMS Settings.")
-                }
-
-            return {
-                "status": "configured",
-                "message": None
-            }
-
-        except frappe.DoesNotExistError:
+        company = getattr(self.doc, "company", None)
+        if not company:
             return {
                 "status": "not_found",
-                "message": _("CBMS Settings not found.")
+                "message": _("Company is required to resolve CBMS credentials.")
             }
-    
+
+        try:
+            row = self.get_company_credentials(company)
+        except frappe.DoesNotExistError:
+            row = None
+
+        if not row:
+            return {
+                "status": "not_found",
+                "message": _("CBMS is not configured for company {0}.").format(company)
+            }
+
+        if not row.enabled:
+            return {
+                "status": "disabled",
+                "message": _("CBMS is disabled for company {0}.").format(company)
+            }
+
+        password = get_decrypted_password(
+            "CBMS Company Credentials", row.name, "password", raise_exception=False
+        )
+        if not all([row.user_name, password, row.panvat_no, row.sales_api_url, row.credit_note_api_url]):
+            return {
+                "status": "configuration_error",
+                "message": _("CBMS credentials for company {0} are incomplete. Please fill all fields in CBMS Settings.").format(company)
+            }
+
+        self.cbms_settings = SimpleNamespace(
+            user_name=row.user_name,
+            password=password,
+            panvat_no=row.panvat_no,
+            sales_api_url=row.sales_api_url,
+            credit_note_api_url=row.credit_note_api_url,
+        )
+        return {"status": "configured", "message": None}
+
     def convert_to_nepali_fy_format(self, fy_name):
         if "/" in fy_name and len(fy_name.split("/")[0]) == 4:
             return fy_name
@@ -76,11 +94,9 @@ class CBMSIntegration:
         from nepal_compliance.nepali_date_utils.nepali_date import format_bs
         try:
             if not self.cbms_settings:
-                self.cbms_settings = frappe.get_doc("CBMS Settings")
-            
-            if not self.cbms_settings:
-                frappe.log_error("CBMS Settings not found", "CBMS API Error")
-                return None
+                if self.is_cbms_configured()["status"] != "configured":
+                    frappe.log_error("CBMS credentials not found for company", "CBMS API Error")
+                    return None
 
             fiscal_year = frappe.db.get_value(
                 "Fiscal Year",
@@ -109,7 +125,7 @@ class CBMSIntegration:
 
             self.invoice_payload = {
                 "username": self.cbms_settings.user_name,
-                "password": self.cbms_settings.get_password("password"),
+                "password": self.cbms_settings.password,
                 "seller_pan": self.cbms_settings.panvat_no,
                 "buyer_pan": self.get_buyer_pan(),  
                 "fiscal_year": fiscal_year,
@@ -147,6 +163,8 @@ class CBMSIntegration:
             return None
 
     def send_to_cbms(self, doc):
+        if isinstance(doc, str):
+            doc = frappe.get_doc("Sales Invoice", doc)
         self.doc = doc
         
         try:
@@ -259,6 +277,7 @@ class CBMSIntegration:
 def post_sales_invoice_or_return_to_cbms(doc_name: Any, method: Optional[str] = None) -> None:
     
     try:
+        doc_name = getattr(doc_name, "name", doc_name)
         doc = frappe.get_doc("Sales Invoice", doc_name)
         if not doc:
             frappe.throw(_("Sales Invoice not found"))
@@ -293,7 +312,7 @@ def post_sales_invoice_status(doc_name: Any, method: Optional[str] = None) -> di
         if not frappe.db.exists("Sales Invoice", doc_name):
             return {"message": _("Sales Invoice not found"), "status": "error"}
 
-        cbms_integration = CBMSIntegration(None)
+        cbms_integration = CBMSIntegration(frappe.get_doc("Sales Invoice", doc_name))
         config = cbms_integration.is_cbms_configured()
 
         if config["status"] == "configured":
@@ -309,10 +328,18 @@ def post_sales_invoice_status(doc_name: Any, method: Optional[str] = None) -> di
         return {"message": _("An error occurred while processing the request: {0}").format(str(e)), "status": "error"}
 
 @frappe.whitelist()
-def sync_failed_cbms_invoices():
+def sync_failed_cbms_invoices(company: Optional[str] = None):
+    settings = frappe.get_cached_doc("CBMS Settings")
+    companies = [r.company for r in settings.get("credentials") or [] if r.enabled]
+    if company:
+        companies = [c for c in companies if c == company]
+    if not companies:
+        frappe.msgprint(_("CBMS is not enabled for any company."))
+        return {"message": 0}
+
     failed_invoices = frappe.get_all(
         "Sales Invoice",
-        filters={"docstatus": 1, "cbms_status": ["!=", "Success"]},
+        filters={"docstatus": 1, "cbms_status": ["!=", "Success"], "company": ["in", companies]},
         pluck="name"
     )
 
@@ -330,7 +357,7 @@ def sync_failed_cbms_invoices():
                 queue="short",
                 timeout=60,
                 is_async=True,
-                doc=doc
+                doc=inv_name
             )
             frappe.logger().info(f"Invoice {inv_name} queued for CBMS sync.")
         except Exception as e:

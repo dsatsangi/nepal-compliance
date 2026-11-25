@@ -10,3 +10,4 @@ nepal_compliance.patches.v15.sync_salary_components
 nepal_compliance.patches.v15.hide_js_bs_fields
 nepal_compliance.patches.backfill_journal_entry_nepali_date
 nepal_compliance.patches.enable_report_bs_date_column
+nepal_compliance.patches.v15.migrate_cbms_single_to_table

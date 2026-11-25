@@ -6,13 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "cbms_credential_setup_section",
-  "configure_cbms",
-  "user_name",
-  "password",
-  "column_break_xvxj",
-  "panvat_no",
-  "sales_api_url",
-  "credit_note_api_url"
+  "credentials"
  ],
  "fields": [
   {
@@ -21,53 +15,17 @@
    "label": "CBMS Credential Setup"
   },
   {
-   "depends_on": "eval: doc.configure_cbms === 1",
-   "fieldname": "user_name",
-   "fieldtype": "Data",
-   "label": "UserName"
-  },
-  {
-   "depends_on": "eval: doc.configure_cbms === 1",
-   "fieldname": "password",
-   "fieldtype": "Password",
-   "label": "Password"
-  },
-  {
-   "fieldname": "column_break_xvxj",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval: doc.configure_cbms === 1",
-   "fieldname": "panvat_no",
-   "fieldtype": "Data",
-   "label": "PAN/VAT No."
-  },
-  {
-   "default": "https://cbapi.ird.gov.np/api/bill",
-   "fieldname": "sales_api_url",
-   "fieldtype": "Data",
-   "label": "Sales API URL",
-   "read_only": 1
-  },
-  {
-   "default": "https://cbapi.ird.gov.np/api/billreturn",
-   "fieldname": "credit_note_api_url",
-   "fieldtype": "Data",
-   "label": "Credit Note API URL",
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "description": "Enable to configure credentials for Nepal IRD's Computer-Based Management System",
-   "fieldname": "configure_cbms",
-   "fieldtype": "Check",
-   "label": "Configure CBMS"
+   "description": "One row per company. Invoices of companies without an enabled row are not sent to Nepal IRD's CBMS.",
+   "fieldname": "credentials",
+   "fieldtype": "Table",
+   "label": "Company Credentials",
+   "options": "CBMS Company Credentials"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-02-16 12:04:00.214710",
+ "modified": "2026-11-25 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Nepal Compliance",
  "name": "CBMS Settings",

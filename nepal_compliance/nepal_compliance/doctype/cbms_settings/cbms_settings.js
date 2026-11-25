@@ -2,6 +2,11 @@
 // For license information, please see LICENSE at the root of this repository
 
 frappe.ui.form.on('CBMS Settings', {
+    setup: function (frm) {
+      frm.set_query('company', 'credentials', function () {
+        return { filters: { country: 'Nepal' } };
+      });
+    },
     refresh: function (frm) {
       frm.add_custom_button(__('Sync Failed Invoices'), function () {
           frappe.call({
@@ -23,8 +28,5 @@ frappe.ui.form.on('CBMS Settings', {
           link.target = '_blank'; 
           link.click();
       });
-      frm.fields_dict.user_name.$wrapper.find("input").attr("placeholder", "Use your CBMS username");
-      frm.fields_dict.password.$wrapper.find("input").attr("placeholder", "Use your CBMS password");
-      frm.fields_dict.panvat_no.$wrapper.find("input").attr("placeholder", "Use your CBMS VAT/PAN");
     },
   });
