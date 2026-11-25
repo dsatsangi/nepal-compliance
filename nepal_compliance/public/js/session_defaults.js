@@ -98,6 +98,29 @@
             return Boolean(frappe.views?.QueryReport?.prototype);
         }
 
+        // reports that ship without a company filter get one added here
+        const original_setup_filters = frappe.views.QueryReport.prototype.setup_filters;
+        frappe.views.QueryReport.prototype.setup_filters = function () {
+            const settings = this.report_settings;
+            if (
+                settings
+                && this.report_name === "Batch Item Expiry Status"
+                && !(settings.filters || []).some(df => df.fieldname === "company")
+            ) {
+                settings.filters = [
+                    {
+                        fieldname: "company",
+                        label: __("Company"),
+                        fieldtype: "Link",
+                        options: "Company",
+                        default: get_session_company(),
+                    },
+                    ...(settings.filters || []),
+                ];
+            }
+            return original_setup_filters.apply(this, arguments);
+        };
+
         const original_refresh_report = frappe.views.QueryReport.prototype.refresh_report;
         const original_refresh = frappe.views.QueryReport.prototype.refresh;
 

@@ -48,10 +48,12 @@ boot_session = "nepal_compliance.boot.get_boot_info"
 before_request = [
     "nepal_compliance.patches.sanitize_html_patch.apply",
     "nepal_compliance.patches.report_bs_columns.apply",
+    "nepal_compliance.patches.batch_expiry_company.apply",
 ]
 before_job = [
     "nepal_compliance.patches.sanitize_html_patch.apply",
     "nepal_compliance.patches.report_bs_columns.apply",
+    "nepal_compliance.patches.batch_expiry_company.apply",
 ]
 
 # include js, css files in header of web template
